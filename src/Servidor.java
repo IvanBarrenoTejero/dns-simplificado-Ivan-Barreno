@@ -64,23 +64,18 @@ public class Servidor {
                     }
 
                     case "LOOKUP" -> {
-                        String[] partes = mensajeCliente.split(" "); // Tocamos el mensaje no el comando
+                        String[] partes = mensajeCliente.split(" ");
                         if (partes.length != 3) {
                             salida.write("400 Bad request\n");
                             salida.flush();
                         } else {
-                            String respuesta = respuestaLookUp(mensajeCliente, registros);
+                            String tipo = partes[1];
+                            String dominio = partes[2];
 
+                            // La respuesta ya incluye "200 ..." o "404 Not Found"
+                            String respuesta = respuestaLookUp(tipo, dominio, registros);
 
-                            if (respuesta.startsWith("No se encontraron")
-                                    || respuesta.startsWith("Dominio no encontrado")) {
-                                salida.write("404 Not Found\n");
-                            } else {
-                                for (String r : respuesta.split("\n")) {
-                                    String[] datos = r.split(" ");
-                                    salida.write("200 " + datos[2] + "\n");
-                                }
-                            }
+                            salida.write(respuesta + "\n");
                             salida.flush();
                         }
                     }
@@ -123,37 +118,31 @@ public class Servidor {
         server.close();
     }
 
-    private static String respuestaLookUp(String texto, HashMap<String, ArrayList<Registro>> registros) {
-        String[] caracteres = texto.split(" ");
-
-        String tipoBuscado = caracteres[1];
-        String dominioBuscado = caracteres[2];
+    private static String respuestaLookUp(String tipoBuscado, String dominioBuscado, HashMap<String, ArrayList<Registro>> registros) {
 
         ArrayList<Registro> registrosDominio = registros.get(dominioBuscado);
 
+        // Mandar el mensaje 404 si no existe
         if (registrosDominio == null) {
-            return "Dominio no encontrado";
+            return "404 Not Found";
         }
 
-        StringBuilder respuesta = new StringBuilder();
+        StringBuilder resultado = new StringBuilder();
 
         for (Registro registro : registrosDominio) {
-            if (registro.getTipo().equals(tipoBuscado)) {
-                respuesta.append(registro.getDominio())
-                        .append(" ")
-                        .append(registro.getTipo())
-                        .append(" ")
-                        .append(registro.getIp())
-                        .append("\n");
+            if (registro.getTipo().equalsIgnoreCase(tipoBuscado)) {
+                resultado.append("200 ").append(registro.getValor()).append("\n");
             }
         }
 
-        if (respuesta.isEmpty()) {
-            return "No se encontraron registros del tipo " + tipoBuscado;
+        // Mandar 404 si no lo encontró
+        if (resultado.isEmpty()) {
+            return "404 Not Found";
         }
 
-        return respuesta.toString().trim();
+        return resultado.toString().trim();
     }
+
 
     private static String respuestaList(HashMap<String, ArrayList<Registro>> registros) {
         StringBuilder respuesta = new StringBuilder();
@@ -168,7 +157,7 @@ public class Servidor {
                         .append(" ")
                         .append(registroActual.getTipo())
                         .append(" ")
-                        .append(registroActual.getIp())
+                        .append(registroActual.getValor())
                         .append("\n");
 
             }

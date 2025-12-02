@@ -1,12 +1,12 @@
 public class Registro {
     private String dominio;
     private String tipo;
-    private String ip;
+    private String valor;
 
-    public Registro(String dominio, String tipo, String ip) {
+    public Registro(String dominio, String tipo, String valor) {
         this.dominio = dominio;
         this.tipo = tipo;
-        this.ip = ip;
+        this.valor = valor;
     }
 
     public String getDominio() {
@@ -25,11 +25,11 @@ public class Registro {
         this.tipo = tipo;
     }
 
-    public String getIp() {
-        return ip;
+    public String getValor() {
+        return valor;
     }
 
-    public void setIp(String ip) {
-        this.ip = ip;
+    public void setValor(String valor) {
+        this.valor = valor;
     }
 }
